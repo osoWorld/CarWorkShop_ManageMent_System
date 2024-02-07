@@ -5,6 +5,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.print.*;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class AdminDashboard extends JFrame {
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
         topRectangle.add(iconLabel, BorderLayout.CENTER);
 
-        JLabel titleLabel = new JLabel("Garage Genius");
+        JLabel titleLabel = new JLabel("Admin Garage Genius");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         topRectangle.add(titleLabel, BorderLayout.SOUTH);

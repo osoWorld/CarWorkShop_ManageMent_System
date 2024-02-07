@@ -4,8 +4,6 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.print.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -98,9 +96,7 @@ public class MainDashboard extends JFrame {
 
         // Create a JTextArea for receipt details
         JTextPane receiptTextArea = new JTextPane();
-//        receiptTextArea.setLineWrap(true);
         receiptTextArea.setPreferredSize(new Dimension(280, 80));
-//        receiptTextArea.setWrapStyleWord(true);
         receiptTextArea.setEditable(false);
 
         // Add JTextArea to a JScrollPane for scrolling if needed

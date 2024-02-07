@@ -7,11 +7,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.*;
 
 public class Login extends JFrame {
     private JTextField emailField;
     private JPasswordField passwordField;
-
+    private String adminEmail = "admin@admin.com";
+    private String adminPassword = "adminPass";
     public Login() {
         initializeUI();
     }
@@ -101,8 +103,6 @@ public class Login extends JFrame {
         constraints.gridy++;
 
 
-
-
         // Add login button
         constraints.gridx = 0;
         constraints.gridwidth = 2; // Make the button span two columns
@@ -113,7 +113,8 @@ public class Login extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // Add your login logic here
                 // For simplicity, display a message
-                handleLoginButtonClick(roleComboBox.getSelectedItem().toString());
+//                handleLoginButtonClick(roleComboBox.getSelectedItem().toString());
+                handleLoginButtonClick(emailField, passwordField, roleComboBox.getSelectedItem().toString());
             }
         });
         loginPanel.add(loginButton, constraints);
@@ -126,24 +127,65 @@ public class Login extends JFrame {
 
     }
 
-    private void handleLoginButtonClick(String selectedRole) {
-
-//        JOptionPane.showMessageDialog(Login.this, "Login button clicked!");
-
-        // Close the current login frame
-        dispose();
+    private void handleLoginButtonClick(JTextField email, JTextField password, String selectedRole) {
 
         // Open the appropriate Dashboard based on the selected role
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                if (selectedRole.equals("Administrator")){
-                    new AdminDashboard();
+                if (selectedRole.equals("Administrator")) {
+                    adminAuthenticate(email,password);
                 } else if (selectedRole.equals("Employee")) {
-                    new MainDashboard();
+                    employeeAuthenticate(email,password);
                 }
             }
         });
+    }
+
+    private void adminAuthenticate(JTextField email, JTextField password){
+        if (email.getText().equals(adminEmail) && password.getText().equals(adminPassword)){
+            JOptionPane.showMessageDialog(null, "Admin Login Successful","Success",JOptionPane.INFORMATION_MESSAGE);
+            dispose();
+            new AdminDashboard();
+        }else {
+            JOptionPane.showMessageDialog(null, "Wrong Email or Password","Error",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void employeeAuthenticate(JTextField email, JTextField password) {
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection("jdbc:ucanaccess://E://Garage Genius Database//Garage_Genius.accdb");
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("Select * from Auth");
+
+            boolean loginSuccessful = false;  // Add a flag to track login status
+
+            while (resultSet.next()) {
+                if (email.getText().equals(resultSet.getString(1)) && password.getText().equals(resultSet.getString(2))) {
+                    JOptionPane.showMessageDialog(null, "Login Successful","Success",JOptionPane.INFORMATION_MESSAGE);
+                    loginSuccessful = true;  // Set the flag to true
+                    dispose();
+                    new MainDashboard();
+                    break;  // Break out of the loop once login is successful
+                }
+            }
+
+            if (!loginSuccessful) {
+                JOptionPane.showMessageDialog(null, "Wrong Email or Password","Error",JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (SQLException sqe) {
+            throw new RuntimeException(sqe);
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();  // Close the connection in the finally block
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static void main(String[] args) {
