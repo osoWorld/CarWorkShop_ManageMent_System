@@ -315,6 +315,7 @@ public class MainDashboard extends JFrame {
                 }
             }
 
+
             styledDocument.insertString(styledDocument.getLength(), "----------------------------------------------------\n", defaultStyle);
 
             styledDocument.insertString(styledDocument.getLength(), "\n", spacing);
