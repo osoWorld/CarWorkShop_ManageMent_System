@@ -8,9 +8,10 @@ import java.awt.event.ActionListener;
 
 public class ServiceBooking extends JFrame {
     private static JCheckBox serviceBookingCheckBox = new JCheckBox("Service Booking");
-    private static JComboBox<String> timeComboBox = new JComboBox<>(new String[]{"12 hours", "48 hours", "72 hours","96 hours","120 hours"});
+    private static JComboBox<String> timeComboBox = new JComboBox<>(new String[]{"24 hours", "48 hours", "72 hours","96 hours","120 hours"});
     private static JTextField phoneNumberTextField = new JTextField();
     private static ServiceBookingInfo serviceBookingInfo;
+
 
     public static void showServiceBookingWindow(JFrame parentFrame) {
         JFrame serviceBookingFrame = new JFrame("Service Booking");
@@ -89,6 +90,7 @@ public class ServiceBooking extends JFrame {
         private boolean isServiceBookingSelected;
         private String selectedTime;
         private String customerPhoneNumber;
+//        private boolean isServiceBookingSelected;
 
         public ServiceBookingInfo(boolean isServiceBookingSelected, String selectedTime, String customerPhoneNumber) {
             this.isServiceBookingSelected = isServiceBookingSelected;

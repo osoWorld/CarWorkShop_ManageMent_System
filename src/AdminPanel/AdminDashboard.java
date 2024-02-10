@@ -5,7 +5,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.print.*;
-import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -382,5 +381,4 @@ public class AdminDashboard extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new AdminDashboard());
     }
-
 }

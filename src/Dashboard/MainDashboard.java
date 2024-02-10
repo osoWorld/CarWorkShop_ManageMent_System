@@ -5,23 +5,30 @@ import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.print.*;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
-
-//I can also Filter the Input Types in TextFields
-
 public class MainDashboard extends JFrame {
     private static final int CUSTOMER_DETAILS_WIDTH = 300;
     private static final int TUNING_MENU_WIDTH = 150;
-    private static final int RECEIPT_WIDTH = 600; // Increased width for Receipt
+    private static final int RECEIPT_WIDTH = 600;   // Increased width for Receipt
     private static final int BUTTONS_WIDTH = 75;
     private HashMap<String, Double> checkBoxAmounts;
+    private int customerIdCounter = 56;
+    private JPanel customerDetailsRectangle;
+
+    private JTextField customerIdField;
 
     public MainDashboard() {
         checkBoxAmounts = new HashMap<>();
         initializeUI();
+
+        customerIdCounter = getLastCustomerIdFromDatabase() + 1;
+        customerIdField.setText(String.valueOf(customerIdCounter));
+        customerIdField.setEditable(false);
+
     }
 
     private void initializeUI() {
@@ -53,7 +60,7 @@ public class MainDashboard extends JFrame {
         add(topRectangle, BorderLayout.NORTH);
 
         // Create the "Customer Details" rectangle
-        JPanel customerDetailsRectangle = createTitledRectanglePanel(0, 100, CUSTOMER_DETAILS_WIDTH, getHeight() - 100, "Customer Details");
+        customerDetailsRectangle = createTitledRectanglePanel(0, 100, CUSTOMER_DETAILS_WIDTH, getHeight() - 100, "Customer Details");
         customerDetailsRectangle.setLayout(new GridLayout(0, 2, 1, 60)); // Adjust as needed
 
         // Add labels and text fields with recommended size
@@ -61,10 +68,18 @@ public class MainDashboard extends JFrame {
         for (String label : labels) {
             JLabel jLabel = new JLabel(label);
 //            jLabel.setPreferredSize(new Dimension(170,50));
-            JTextField jTextField = new JTextField();
-            jTextField.setPreferredSize(new Dimension(160, 20)); // Set the recommended size
-            customerDetailsRectangle.add(jLabel);
-            customerDetailsRectangle.add(jTextField);
+            if (label.equals("Customer ID:")) {
+                customerIdField = new JTextField();
+                customerIdField.setPreferredSize(new Dimension(160, 20));
+                customerDetailsRectangle.add(jLabel);
+                customerDetailsRectangle.add(customerIdField);
+            } else {
+                JTextField jTextField = new JTextField();
+                jTextField.setPreferredSize(new Dimension(160, 20)); // Set the recommended size
+                customerDetailsRectangle.add(jLabel);
+                customerDetailsRectangle.add(jTextField);
+            }
+
         }
 
         add(customerDetailsRectangle, BorderLayout.WEST);
@@ -126,11 +141,9 @@ public class MainDashboard extends JFrame {
             } else if (buttonLabel.equals("Service Booking")) {
                 jButton.addActionListener(e -> ServiceBooking.showServiceBookingWindow(this));
             }
-
         }
 
         add(buttonsRectangle, BorderLayout.SOUTH);
-
         setVisible(true);
     }
 
@@ -223,14 +236,21 @@ public class MainDashboard extends JFrame {
     private void calculateTotal(JPanel tuningMenuRectangle, JTextPane textReceiptPane, JPanel customerDetailsRectangle) {
         double total = 0.0;
 
+        customerIdField.setText(String.valueOf(customerIdCounter));
+
         JTextField customerIdField = findTextField("Customer ID:", customerDetailsRectangle);
         JTextField firstNameField = findTextField("First Name:", customerDetailsRectangle);
         JTextField surNameField = findTextField("Surname:", customerDetailsRectangle);
+        JTextField nicNumberField = findTextField("CNIC Number:", customerDetailsRectangle);
         JTextField depositAmountField = findTextField("Deposit Amount:", customerDetailsRectangle);
+
+        // Auto-increment Customer ID
+        customerIdCounter++;
 
         String customerId = customerIdField.getText();
         String firstName = firstNameField.getText();
         String surName = surNameField.getText();
+        String nicNumber = nicNumberField.getText();
         String depositAmountText = depositAmountField.getText();
 
         double depositAmount = 0.0;
@@ -291,6 +311,8 @@ public class MainDashboard extends JFrame {
             styledDocument.insertString(styledDocument.getLength(), firstName + "\n", defaultStyle);
             styledDocument.insertString(styledDocument.getLength(), " Sur Name : ", defaultStyle);
             styledDocument.insertString(styledDocument.getLength(), surName + "\n", defaultStyle);
+            styledDocument.insertString(styledDocument.getLength(), " CNIC Number : ", defaultStyle);
+            styledDocument.insertString(styledDocument.getLength(), nicNumber + "\n", defaultStyle);
             styledDocument.insertString(styledDocument.getLength(), " Deposit Amount : ", boldStyle);
             styledDocument.insertString(styledDocument.getLength(), String.format("%.2f", depositAmount) + "\n", defaultStyle);
             styledDocument.insertString(styledDocument.getLength(), "----------------------------------------------------\n", defaultStyle);
@@ -300,6 +322,8 @@ public class MainDashboard extends JFrame {
             styledDocument.insertString(styledDocument.getLength(), "Selected Services:\n", headingStyle);
             styledDocument.insertString(styledDocument.getLength(), "\n", boldStyle);
 
+            StringBuilder selectedServices = new StringBuilder();
+
             for (Component component : tuningMenuRectangle.getComponents()) {
                 if (component instanceof JCheckBox checkBox && checkBox.isSelected()) {
                     String checkBoxText = checkBox.getText();
@@ -307,10 +331,15 @@ public class MainDashboard extends JFrame {
                         double checkBoxPrice = checkBoxAmounts.get(checkBoxText);
                         styledDocument.insertString(styledDocument.getLength(), " " + checkBoxText + " - $ " + checkBoxPrice + "\n", defaultStyle);
                         total += checkBoxPrice;
+
+                        // Append selected services to the StringBuilder
+                        selectedServices.append(checkBoxText).append(", ");
                     }
                 }
             }
 
+            // Remove the trailing comma and space
+            String selectedServicesString = selectedServices.toString().replaceAll(", $", "");
 
             styledDocument.insertString(styledDocument.getLength(), "----------------------------------------------------\n", defaultStyle);
 
@@ -319,6 +348,8 @@ public class MainDashboard extends JFrame {
             styledDocument.insertString(styledDocument.getLength(), "\n", boldStyle);
 
             ServiceBooking.ServiceBookingInfo serviceBookingInfo = ServiceBooking.getServiceBookingInfo();
+            String selectedTime = (serviceBookingInfo != null) ? serviceBookingInfo.getSelectedTime() : "";
+            String customerPhoneNumber = (serviceBookingInfo != null) ? serviceBookingInfo.getCustomerPhoneNumber() : "";
 
             if (serviceBookingInfo != null && serviceBookingInfo.isServiceBookingSelected()) {
                 String serviceBookingDetails = String.format(" Service Booking :  Yes\n Time: %s\n Customer Ph. Number: %s",
@@ -333,6 +364,8 @@ public class MainDashboard extends JFrame {
             styledDocument.insertString(styledDocument.getLength(), String.format("%.2f", total) + "\n", totalStyle);
             styledDocument.insertString(styledDocument.getLength(), "\n\n " + formattedDateTime, defaultStyle);
 
+            //Save to Database
+            saveDataToDatabase(customerIdCounter, firstName, surName, nicNumber, depositAmount, selectedServicesString, total, "Booking Details", selectedTime, customerPhoneNumber, total, formattedDateTime);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
@@ -363,11 +396,19 @@ public class MainDashboard extends JFrame {
 
         textReceiptArea.setText("");
 
+        JTextField customerIdField = findTextField("Customer ID:", customerDetailRectangle);
+        // Keep the current customer ID value
+        int currentCustomerId = Integer.parseInt(customerIdField.getText());
+
+
         for (Component component : customerDetailRectangle.getComponents()) {
             if (component instanceof JTextField textField) {
                 textField.setText("");
             }
         }
+
+        // Update the customer ID field with the next value
+        customerIdField.setText(String.valueOf(currentCustomerId + 1));
 
         ServiceBooking.resetServiceBooking();
     }
@@ -407,9 +448,70 @@ public class MainDashboard extends JFrame {
         }
     }
 
-    private void saveAsPDF() {
-        //Will Implement Later
+    private void saveDataToDatabase(int customerId, String firstName, String surName, String nicNumber, double depositAmount, String selectedServices, double serviceAmount, String bookingDetails, String bookingTime, String customerPhoneNumber, double totalBill, String billingDate) {
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection("jdbc:ucanaccess://E://Garage Genius Database//Garage_Genius.accdb");
+            String sql = "INSERT INTO [Customer_Receipt] ([Customer ID], [First Name], [Sur Name], [CNIC NUMBER], [Deposit Amount], [Selected Services], [Service Amount], [Booking Details], [Booking Time], [Customer Phone Number], [Total Bill], [Date]) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, customerId);
+            preparedStatement.setString(2, firstName);
+            preparedStatement.setString(3, surName);
+            preparedStatement.setString(4, nicNumber);
+            preparedStatement.setDouble(5, depositAmount);
+            preparedStatement.setString(6, selectedServices);
+            preparedStatement.setDouble(7, serviceAmount);
+            preparedStatement.setString(8, bookingDetails);
+            preparedStatement.setString(9, bookingTime);
+            preparedStatement.setString(10, customerPhoneNumber);
+            preparedStatement.setDouble(11, totalBill);
+            preparedStatement.setString(12, billingDate);
+
+            preparedStatement.executeUpdate();
+
+            JOptionPane.showMessageDialog(null, "Data saved to database successfully!", "Database", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException sqlE) {
+            throw new RuntimeException(sqlE);
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
+
+    private int getLastCustomerIdFromDatabase() {
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection("jdbc:ucanaccess://E://Garage Genius Database//Garage_Genius.accdb");
+            String sql = "SELECT MAX([Customer ID]) FROM [CUSTOMER_RECEIPT]";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException sqlE) {
+            throw new RuntimeException(sqlE);
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Return 0 if there is no customer ID in the database
+        return 0;
+    }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new MainDashboard());
