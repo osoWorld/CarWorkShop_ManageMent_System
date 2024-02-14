@@ -364,8 +364,13 @@ public class MainDashboard extends JFrame {
             styledDocument.insertString(styledDocument.getLength(), String.format("%.2f", total) + "\n", totalStyle);
             styledDocument.insertString(styledDocument.getLength(), "\n\n " + formattedDateTime, defaultStyle);
 
+
+            // Get the current month and year
+            DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+            String currentMonthYear = now.format(monthYearFormatter);
+
             //Save to Database
-            saveDataToDatabase(customerIdCounter, firstName, surName, nicNumber, depositAmount, selectedServicesString, total, "Booking Details", selectedTime, customerPhoneNumber, total, formattedDateTime);
+            saveDataToDatabase(customerIdCounter, firstName, surName, nicNumber, depositAmount, selectedServicesString, total, "Booking Details", selectedTime, customerPhoneNumber, total, currentMonthYear, formattedDateTime);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
@@ -420,10 +425,11 @@ public class MainDashboard extends JFrame {
         if (!receiptText.isEmpty()) {
             PrinterJob job = PrinterJob.getPrinterJob();
             job.setJobName("Billing System");
+
             // Create a PageFormat with the size of the paper
             PageFormat pageFormat = job.defaultPage();
             Paper paper = new Paper();
-            paper.setSize(300, 500); // Set your preferred size
+            paper.setSize(300, 500); // Adjust your preferred size
             pageFormat.setPaper(paper);
 
             // Set the printable area to the size of the JTextArea
@@ -448,12 +454,12 @@ public class MainDashboard extends JFrame {
         }
     }
 
-    private void saveDataToDatabase(int customerId, String firstName, String surName, String nicNumber, double depositAmount, String selectedServices, double serviceAmount, String bookingDetails, String bookingTime, String customerPhoneNumber, double totalBill, String billingDate) {
+    private void saveDataToDatabase(int customerId, String firstName, String surName, String nicNumber, double depositAmount, String selectedServices, double serviceAmount, String bookingDetails, String bookingTime, String customerPhoneNumber, double totalBill, String transactionMonth, String billingDate) {
         Connection connection = null;
         try {
             connection = DriverManager.getConnection("jdbc:ucanaccess://E://Garage Genius Database//Garage_Genius.accdb");
-            String sql = "INSERT INTO [Customer_Receipt] ([Customer ID], [First Name], [Sur Name], [CNIC NUMBER], [Deposit Amount], [Selected Services], [Service Amount], [Booking Details], [Booking Time], [Customer Phone Number], [Total Bill], [Date]) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO [Customer_Receipt] ([Customer ID], [First Name], [Sur Name], [CNIC NUMBER], [Deposit Amount], [Selected Services], [Service Amount], [Booking Details], [Booking Time], [Customer Phone Number], [Total Bill], [Transaction Month], [Date]) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, customerId);
@@ -467,7 +473,8 @@ public class MainDashboard extends JFrame {
             preparedStatement.setString(9, bookingTime);
             preparedStatement.setString(10, customerPhoneNumber);
             preparedStatement.setDouble(11, totalBill);
-            preparedStatement.setString(12, billingDate);
+            preparedStatement.setString(12, transactionMonth);
+            preparedStatement.setString(13, billingDate);
 
             preparedStatement.executeUpdate();
 

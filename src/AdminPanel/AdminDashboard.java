@@ -22,6 +22,7 @@ public class AdminDashboard extends JFrame {
     public AdminDashboard() {
         checkBoxAmounts = new HashMap<>();
         employeeDetailsMap = new HashMap<>();
+
         initializeUI();
     }
 
@@ -37,11 +38,11 @@ public class AdminDashboard extends JFrame {
         // Set background color to white
         getContentPane().setBackground(Color.WHITE);
 
-        // Create a rectangle box at the top with the title "Garage Genius"
+        // Create a rectangle box at the top
         JPanel topRectangle = createRectanglePanel(0, 0, getWidth(), 100, "Admin Garage Genius");
         topRectangle.setLayout(new BorderLayout());
 
-        // Add an icon (assuming you have an ImageIcon named garageIcon)
+        // Add an icon
         JLabel iconLabel = new JLabel(new ImageIcon(getClass().getResource("/resources/garage_icon.png"))); // Replace with your icon file
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
         topRectangle.add(iconLabel, BorderLayout.CENTER);
@@ -57,7 +58,7 @@ public class AdminDashboard extends JFrame {
         JPanel customerDetailsRectangle = createTitledRectanglePanel(0, 100, CUSTOMER_DETAILS_WIDTH, getHeight() - 100, "Employee Payroll");
         customerDetailsRectangle.setLayout(new GridLayout(0, 2, 1, 40)); // Adjust as needed
 
-        // Add labels and text fields with recommended size
+        // Add labels and text fields
         String[] labels = {"Employee ID:", "Employee Name:", "Employee Salary:", "Deduction", "Bonus Amount:", "Total Salary:"};
         for (String label : labels) {
             JLabel jLabel = new JLabel(label);
@@ -79,7 +80,7 @@ public class AdminDashboard extends JFrame {
         JButton payButton = new JButton("Pay");
 
         JButton totalButton = new JButton("Total Salary");
-//        totalButton.setPreferredSize(new Dimension(160, 65));
+        JButton addEmployee = new JButton("Add A New Employee");
 
         checkButton.addActionListener(e -> {
 
@@ -98,9 +99,14 @@ public class AdminDashboard extends JFrame {
             totalSalaryField.setText(String.format("%.2f", totalSalary));
         });
 
+        addEmployee.addActionListener(e -> {
+
+        });
+
         customerDetailsRectangle.add(checkButton);
         customerDetailsRectangle.add(payButton);
         customerDetailsRectangle.add(totalButton);
+        customerDetailsRectangle.add(addEmployee);
 
         add(customerDetailsRectangle, BorderLayout.WEST);
 
@@ -145,7 +151,7 @@ public class AdminDashboard extends JFrame {
         buttonsRectangle.setLayout(new GridLayout(1, 4, 10, 10)); // Adjust as needed
 
         // Add buttons
-        String[] buttonLabels = {"Order", "Print", "Reset", "Save PDF", "Monthly Expense"};
+        String[] buttonLabels = {"Order", "Print", "Reset", "Save PDF", "Monthly Summary"};
         for (String buttonLabel : buttonLabels) {
             JButton jButton = new JButton(buttonLabel);
             jButton.setPreferredSize(new Dimension(60, 74));
@@ -158,8 +164,11 @@ public class AdminDashboard extends JFrame {
                 jButton.addActionListener(e -> resetAll(customerDetailsRectangle, tuningMenuRectangle, receiptTextArea));
             } else if (buttonLabel.equals("Print")) {
                 jButton.addActionListener(e -> printItemsReceipt(receiptTextArea));
-            } else if (buttonLabel.equals("Monthly Expense")) {
-//                jButton.addActionListener(e -> ServiceBooking.showServiceBookingWindow(this));
+            } else if (buttonLabel.equals("Monthly Summary")) {
+                jButton.addActionListener(e -> {
+                    MonthlySummary summary = new MonthlySummary();
+                    summary.generateMonthlySummary();
+                });
             }
 
         }
@@ -422,8 +431,6 @@ public class AdminDashboard extends JFrame {
     private void getEmployeeDataFromDatabase() {
         String employeeName = employeeDetailsMap.get("Employee Name:").getText();
 
-        // Perform a database query to retrieve employee information based on the name
-        // Assume you have a method getEmployeeDataFromDatabase() that returns a ResultSet
         try (Connection connection = DriverManager.getConnection("jdbc:ucanaccess://E://Garage Genius Database//Garage_Genius.accdb");
              Statement statement = connection.createStatement()) {
 
@@ -447,7 +454,6 @@ public class AdminDashboard extends JFrame {
             ex.printStackTrace();
             // Handle the SQL exception appropriately
         }
-
     }
 
     private double calculateTotalSalary() {
@@ -470,7 +476,7 @@ public class AdminDashboard extends JFrame {
     }
 
     private void addValuesInDatabase(String bonusAmount, String formattedDate, String formattedTime, String currentMonthYear) {
-        // Now insert the values into the Employee_Receipt table
+        // insert the values into the Employee_Receipt table
         String employeeName = employeeDetailsMap.get("Employee Name:").getText();
         String employeeID = employeeDetailsMap.get("Employee ID:").getText();
         String deduction = employeeDetailsMap.get("Deduction").getText();
@@ -487,7 +493,7 @@ public class AdminDashboard extends JFrame {
                 ResultSet resultSet = checkStatement.executeQuery();
 
                 if (resultSet.next()) {
-                    // Entry for the current month already exists, you can handle this case as needed
+                    // Entry for the current month already exists
                     JOptionPane.showMessageDialog(null, "An entry for the current month already exists for employee: " + employeeName);
                 } else {
                     // Insert a new row for the current month
@@ -519,7 +525,6 @@ public class AdminDashboard extends JFrame {
 
         } catch (SQLException ex) {
             ex.printStackTrace();
-            // Handle the SQL exception appropriately
         }
     }
 
