@@ -1,5 +1,7 @@
 package AdminPanel;
 
+import UtilsFeatures.Utils;
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
@@ -100,7 +102,7 @@ public class AdminDashboard extends JFrame {
         });
 
         addEmployee.addActionListener(e -> {
-
+            new AddNewEmployee();
         });
 
         customerDetailsRectangle.add(checkButton);
@@ -151,7 +153,7 @@ public class AdminDashboard extends JFrame {
         buttonsRectangle.setLayout(new GridLayout(1, 4, 10, 10)); // Adjust as needed
 
         // Add buttons
-        String[] buttonLabels = {"Order", "Print", "Reset", "Save PDF", "Monthly Summary"};
+        String[] buttonLabels = {"Order", "Print", "Reset", "Search Receipt", "Monthly Summary"};
         for (String buttonLabel : buttonLabels) {
             JButton jButton = new JButton(buttonLabel);
             jButton.setPreferredSize(new Dimension(60, 74));
@@ -163,11 +165,18 @@ public class AdminDashboard extends JFrame {
             } else if (buttonLabel.equals("Reset")) {
                 jButton.addActionListener(e -> resetAll(customerDetailsRectangle, tuningMenuRectangle, receiptTextArea));
             } else if (buttonLabel.equals("Print")) {
-                jButton.addActionListener(e -> printItemsReceipt(receiptTextArea));
+                jButton.addActionListener(e -> {
+                    Utils utils = new Utils();
+                    utils.printItemsReceipt(receiptTextArea);
+                });
             } else if (buttonLabel.equals("Monthly Summary")) {
                 jButton.addActionListener(e -> {
                     MonthlySummary summary = new MonthlySummary();
                     summary.generateMonthlySummary();
+                });
+            } else if (buttonLabel.equals("Search Receipt")) {
+                jButton.addActionListener(e -> {
+                    new SearchReceipt();
                 });
             }
 
@@ -391,41 +400,6 @@ public class AdminDashboard extends JFrame {
         new EmployeePayment(employeeDetails.toString());
 
         addValuesInDatabase(bonusAmount, formattedDate, formattedTime, currentMonthYear);
-    }
-
-    private void printItemsReceipt(JTextPane textReceiptArea) {
-
-        String receiptText = textReceiptArea.getText();
-
-        if (!receiptText.isEmpty()) {
-            PrinterJob job = PrinterJob.getPrinterJob();
-            job.setJobName("Billing System");
-            // Create a PageFormat with the size of the paper
-            PageFormat pageFormat = job.defaultPage();
-            Paper paper = new Paper();
-            paper.setSize(300, 500); // Set your preferred size
-            pageFormat.setPaper(paper);
-
-            // Set the printable area to the size of the JTextArea
-            double width = pageFormat.getWidth();
-            double height = pageFormat.getHeight();
-            textReceiptArea.setSize((int) width, (int) height);
-
-            // Create a Printable from the JTextArea
-            Printable printable = textReceiptArea.getPrintable(null, null);
-
-            // Set the Printable and PageFormat for the PrinterJob
-            job.setPrintable(printable, pageFormat);
-
-            boolean ok = job.printDialog();
-            if (ok) {
-                try {
-                    job.print();
-                } catch (PrinterException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
     }
 
     private void getEmployeeDataFromDatabase() {
