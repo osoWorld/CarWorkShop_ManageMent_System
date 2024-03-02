@@ -1,12 +1,12 @@
 package Dashboard;
 
+import AdminPanel.ItemDetails;
 import UtilsFeatures.Utils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.print.*;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,6 +22,7 @@ public class MainDashboard extends JFrame {
     private JPanel customerDetailsRectangle;
 
     private JTextField customerIdField;
+
 
     public MainDashboard() {
         checkBoxAmounts = new HashMap<>();
@@ -63,7 +64,7 @@ public class MainDashboard extends JFrame {
 
         // Create the "Customer Details" rectangle
         customerDetailsRectangle = createTitledRectanglePanel(0, 100, CUSTOMER_DETAILS_WIDTH, getHeight() - 100, "Customer Details");
-        customerDetailsRectangle.setLayout(new GridLayout(0, 2, 1, 60)); // Adjust as needed
+        customerDetailsRectangle.setLayout(new GridLayout(0, 2, 1, 60));
 
         // Add labels and text fields with recommended size
         String[] labels = {"Customer ID:", "First Name:", "Surname:", "CNIC Number:", "Deposit Amount:"};
@@ -88,7 +89,7 @@ public class MainDashboard extends JFrame {
 
         // Create the "Tuning Menu" rectangle
         JPanel tuningMenuRectangle = createTitledRectanglePanel(CUSTOMER_DETAILS_WIDTH, 100, TUNING_MENU_WIDTH, getHeight() - 100, "Tuning Menu");
-        tuningMenuRectangle.setLayout(new GridLayout(8, 3, 1, 20)); // Adjust as needed
+        tuningMenuRectangle.setLayout(new GridLayout(8, 3, 1, 20));
 
         // Add checkboxes
         String[] checkboxes = {"Stereo System", "Paint", "GPS", "Leather Coating", "Rims", "Tyres", "Exhaust", "Alignment", "Oil Change"
@@ -100,7 +101,9 @@ public class MainDashboard extends JFrame {
             JCheckBox checkBoxes = new JCheckBox(checkbox);
             checkBoxes.setPreferredSize(new Dimension(100, 60));
 
-            checkBoxesAmount(checkbox);
+//            checkBoxesAmount(checkbox);
+            ItemDetails details = new ItemDetails();
+            details.checkBoxesAmount(checkbox,checkBoxAmounts);
 
             tuningMenuRectangle.add(checkBoxes);
         }
@@ -127,7 +130,7 @@ public class MainDashboard extends JFrame {
         buttonsRectangle.setLayout(new GridLayout(1, 4, 10, 10)); // Adjust as needed
 
         // Add buttons
-        String[] buttonLabels = {"Total", "Print", "Reset", "Save PDF", "Service Booking"};
+        String[] buttonLabels = {"Total", "Print", "Reset", "Service Booking"};
         for (String buttonLabel : buttonLabels) {
             JButton jButton = new JButton(buttonLabel);
             jButton.setPreferredSize(new Dimension(60, 74));
@@ -142,6 +145,8 @@ public class MainDashboard extends JFrame {
                 jButton.addActionListener(e -> {
                     Utils utils = new Utils();
                     utils.printItemsReceipt(receiptTextArea);
+
+                    connectComponentsWithDatabase(tuningMenuRectangle, receiptTextArea, customerDetailsRectangle);
                 });
             } else if (buttonLabel.equals("Service Booking")) {
                 jButton.addActionListener(e -> ServiceBooking.showServiceBookingWindow(this));
@@ -184,58 +189,78 @@ public class MainDashboard extends JFrame {
         return titledRectanglePanel;
     }
 
-    private void checkBoxesAmount(String checkbox) {
-        if (checkbox.equals("Stereo System")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Paint")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("GPS")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Leather Coating")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Rims")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Tyres")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Exhaust")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Alignment")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Oil Change")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Battery Replacement")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Brake repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Catalytic converter")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Transmission repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Wiring System")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Thermostat replacement")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("A/C repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Timing belt")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Ignition system")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Dent repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Panel replacement")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Fluid checks")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Air Filters")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Climate control")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Engine repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else {
-            checkBoxAmounts.put(checkbox, 10.0);
+    private void connectComponentsWithDatabase(JPanel tuningMenuRectangle, JTextPane textReceiptPane, JPanel customerDetailsRectangle){
+        double total = 0.0;
+
+        customerIdField.setText(String.valueOf(customerIdCounter));
+
+        JTextField customerIdField = findTextField("Customer ID:", customerDetailsRectangle);
+        JTextField firstNameField = findTextField("First Name:", customerDetailsRectangle);
+        JTextField surNameField = findTextField("Surname:", customerDetailsRectangle);
+        JTextField nicNumberField = findTextField("CNIC Number:", customerDetailsRectangle);
+        JTextField depositAmountField = findTextField("Deposit Amount:", customerDetailsRectangle);
+
+        // Auto-increment Customer ID
+        customerIdCounter++;
+
+        String customerId = customerIdField.getText();
+        String firstName = firstNameField.getText();
+        String surName = surNameField.getText();
+        String nicNumber = nicNumberField.getText();
+        String depositAmountText = depositAmountField.getText();
+
+        double depositAmount = 0.0;
+        if (!depositAmountText.isEmpty()) {
+            depositAmount = Double.parseDouble(depositAmountText);
+            total -= depositAmount;
         }
+
+        for (Component component : tuningMenuRectangle.getComponents()) {
+            if (component instanceof JCheckBox checkBox && checkBox.isSelected()) {
+                String checkBoxText = checkBox.getText();
+                if (checkBoxAmounts.containsKey(checkBoxText)) {
+                    total += checkBoxAmounts.get(checkBoxText);
+                }
+            }
+        }
+
+        StringBuilder selectedServices = new StringBuilder();
+
+        for (Component component : tuningMenuRectangle.getComponents()) {
+            if (component instanceof JCheckBox checkBox && checkBox.isSelected()) {
+                String checkBoxText = checkBox.getText();
+                if (checkBoxAmounts.containsKey(checkBoxText)) {
+                    double checkBoxPrice = checkBoxAmounts.get(checkBoxText);
+//                    styledDocument.insertString(styledDocument.getLength(), " " + checkBoxText + " - $ " + checkBoxPrice + "\n", defaultStyle);
+                    total += checkBoxPrice;
+
+                    // Append selected services to the StringBuilder
+                    selectedServices.append(checkBoxText).append(", ");
+                }
+            }
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedDateTime = now.format(formatter);
+
+        ServiceBooking.ServiceBookingInfo serviceBookingInfo = ServiceBooking.getServiceBookingInfo();
+        String selectedTime = (serviceBookingInfo != null) ? serviceBookingInfo.getSelectedTime() : "";
+        String customerPhoneNumber = (serviceBookingInfo != null) ? serviceBookingInfo.getCustomerPhoneNumber() : "";
+
+        if (serviceBookingInfo != null && serviceBookingInfo.isServiceBookingSelected()) {
+            String serviceBookingDetails = String.format(" Service Booking :  Yes\n Time: %s\n Customer Ph. Number: %s",
+                    serviceBookingInfo.getSelectedTime(), serviceBookingInfo.getCustomerPhoneNumber());
+
+        }
+
+        String selectedServicesString = selectedServices.toString().replaceAll(", $", "");
+
+        DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+        String currentMonthYear = now.format(monthYearFormatter);
+
+        //Save to Database
+        saveDataToDatabase(customerIdCounter, firstName, surName, nicNumber, depositAmount, selectedServicesString, total, "Booking Details", selectedTime, customerPhoneNumber, total, currentMonthYear, formattedDateTime);
     }
 
     private void calculateTotal(JPanel tuningMenuRectangle, JTextPane textReceiptPane, JPanel customerDetailsRectangle) {
@@ -375,7 +400,7 @@ public class MainDashboard extends JFrame {
             String currentMonthYear = now.format(monthYearFormatter);
 
             //Save to Database
-            saveDataToDatabase(customerIdCounter, firstName, surName, nicNumber, depositAmount, selectedServicesString, total, "Booking Details", selectedTime, customerPhoneNumber, total, currentMonthYear, formattedDateTime);
+            // saveDataToDatabase(customerIdCounter, firstName, surName, nicNumber, depositAmount, selectedServicesString, total, "Booking Details", selectedTime, customerPhoneNumber, total, currentMonthYear, formattedDateTime);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
@@ -489,6 +514,6 @@ public class MainDashboard extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MainDashboard());
+        SwingUtilities.invokeLater(MainDashboard::new);
     }
 }

@@ -10,7 +10,7 @@ public class MonthlySummary {
         try (Connection connection = DriverManager.getConnection("jdbc:ucanaccess://E://Garage Genius Database//Garage_Genius.accdb")) {
             // Retrieve data from Customer_Receipt table
             double totalCustomerBill = 0.0;
-            String month = "February 2024";
+            String month = "March 2024";
 
             try (Statement statement = connection.createStatement()) {
                 ResultSet customerResultSet = statement.executeQuery("SELECT [Total Bill] FROM Customer_Receipt WHERE [Transaction Month] = '" + month + "'");
@@ -28,9 +28,18 @@ public class MonthlySummary {
                 }
             }
 
+            double totalRestockExpense = 0.0;
+            try (Statement statement = connection.createStatement()) {
+                ResultSet restockResultSet = statement.executeQuery("SELECT [Total Price] FROM RestockItemDetails WHERE [Transaction Month] = '" + month + "'");
+                while (restockResultSet.next()) {
+                    totalRestockExpense += restockResultSet.getDouble("Total Price");
+                    System.out.println("Restock"+String.valueOf(totalRestockExpense));
+                }
+            }
 
-            // Calculate total
-            double total = totalCustomerBill + totalEmployeePayingAmount;
+            double total = totalCustomerBill + totalEmployeePayingAmount + totalRestockExpense;
+
+            double profit = total - totalEmployeePayingAmount - totalRestockExpense;
 
             // Get current date, time, and month
             LocalDateTime now = LocalDateTime.now();
@@ -44,9 +53,9 @@ public class MonthlySummary {
             // Inserting data into the new table
             try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO Monthly_Records ([Total Expense], [Total Profit], [Total Employee Salary], [Total Restock Expense], [Total Service Profit], [Date], [Current Time], [Record Month]) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
                 preparedStatement.setDouble(1, total);
-                preparedStatement.setDouble(2, total);
+                preparedStatement.setDouble(2, profit);
                 preparedStatement.setDouble(3, totalEmployeePayingAmount);
-                preparedStatement.setDouble(4, total);
+                preparedStatement.setDouble(4, totalRestockExpense);
                 preparedStatement.setDouble(5, totalCustomerBill);
                 preparedStatement.setString(6, currentDate);
                 preparedStatement.setString(7, currentTime);

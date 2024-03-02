@@ -88,7 +88,6 @@ public class ServiceBooking extends JFrame {
         private boolean isServiceBookingSelected;
         private String selectedTime;
         private String customerPhoneNumber;
-//        private boolean isServiceBookingSelected;
 
         public ServiceBookingInfo(boolean isServiceBookingSelected, String selectedTime, String customerPhoneNumber) {
             this.isServiceBookingSelected = isServiceBookingSelected;

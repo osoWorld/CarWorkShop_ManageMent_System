@@ -6,12 +6,13 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.print.*;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class AdminDashboard extends JFrame {
     private static final int CUSTOMER_DETAILS_WIDTH = 300;
@@ -20,6 +21,8 @@ public class AdminDashboard extends JFrame {
     private static final int BUTTONS_WIDTH = 75;
     private final HashMap<String, Double> checkBoxAmounts;
     private final Map<String, JTextField> employeeDetailsMap; // to store employee details text fields
+    private JTextField employeeNameTF, employeeTotalSalary, employeeId;
+    String employeeName, totalSalary, id;
 
     public AdminDashboard() {
         checkBoxAmounts = new HashMap<>();
@@ -45,7 +48,7 @@ public class AdminDashboard extends JFrame {
         topRectangle.setLayout(new BorderLayout());
 
         // Add an icon
-        JLabel iconLabel = new JLabel(new ImageIcon(getClass().getResource("/resources/garage_icon.png"))); // Replace with your icon file
+        JLabel iconLabel = new JLabel(new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/garage_icon.png"))));
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
         topRectangle.add(iconLabel, BorderLayout.CENTER);
 
@@ -75,6 +78,17 @@ public class AdminDashboard extends JFrame {
             }
 
             employeeDetailsMap.put(label, jTextField);
+
+            if (label.equals("Employee Name:")) {
+                employeeNameTF = new JTextField();
+            }
+
+            if (label.equals("Total Salary:")){
+                employeeTotalSalary = new JTextField();
+            }
+            if (label.equals("Employee ID:")){
+                employeeId = new JTextField();
+            }
         }
 
         // Add "Check" and "Pay" buttons
@@ -85,12 +99,20 @@ public class AdminDashboard extends JFrame {
         JButton addEmployee = new JButton("Add A New Employee");
 
         checkButton.addActionListener(e -> {
+            employeeName = employeeNameTF.getText().trim();
+                getEmployeeDataFromDatabase();
 
-            getEmployeeDataFromDatabase();
         });
 
         payButton.addActionListener(e -> {
-            payCheckSend();
+            totalSalary = employeeTotalSalary.getText().trim();
+            id = employeeId.getText().trim();
+
+            if (!totalSalary.isEmpty() && !id.isEmpty()){
+                payCheckSend();
+            }else {
+                JOptionPane.showMessageDialog(null, "Enter Employee Id and Employee Salary", "Error", JOptionPane.ERROR_MESSAGE);
+            }
 
         });
 
@@ -126,7 +148,8 @@ public class AdminDashboard extends JFrame {
             JCheckBox checkBoxes = new JCheckBox(checkbox);
             checkBoxes.setPreferredSize(new Dimension(100, 60));
 
-            checkBoxesAmount(checkbox);
+            ItemDetails details = new ItemDetails();
+            details.checkBoxesAmount(checkbox,checkBoxAmounts);
 
             tuningMenuRectangle.add(checkBoxes);
         }
@@ -219,68 +242,16 @@ public class AdminDashboard extends JFrame {
         return titledRectanglePanel;
     }
 
-    private void checkBoxesAmount(String checkbox) {
-        if (checkbox.equals("Stereo System")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Paint")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("GPS")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Leather Coating")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Rims")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Tyres")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Exhaust")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Alignment")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Oil Change")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Battery Replacement")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Brake repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Catalytic converter")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Transmission repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Wiring System")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Thermostat replacement")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("A/C repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Timing belt")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Ignition system")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Dent repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Panel replacement")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Fluid checks")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Air Filters")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Climate control")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else if (checkbox.equals("Engine repair")) {
-            checkBoxAmounts.put(checkbox, 100.0);
-        } else {
-            checkBoxAmounts.put(checkbox, 10.0);
-        }
-    }
-
     private void calculateTotal(JPanel tuningMenuRectangle, JTextPane textReceiptPane) {
         double total = 0.0;
+        ArrayList<String> selectedItems = new ArrayList<>();
 
         for (Component component : tuningMenuRectangle.getComponents()) {
             if (component instanceof JCheckBox checkBox && checkBox.isSelected()) {
                 String checkBoxText = checkBox.getText();
                 if (checkBoxAmounts.containsKey(checkBoxText)) {
                     total += checkBoxAmounts.get(checkBoxText);
+                    selectedItems.add(checkBoxText);
                 }
             }
         }
@@ -297,9 +268,6 @@ public class AdminDashboard extends JFrame {
 
         // Create different styles
         Style defaultStyle = textReceiptPane.getStyle(StyleContext.DEFAULT_STYLE);
-        Style boldStyle = textReceiptPane.addStyle("Bold", defaultStyle);
-        StyleConstants.setBold(boldStyle, true);
-
         Style largeStyle = textReceiptPane.addStyle("Large", defaultStyle);
         StyleConstants.setFontSize(largeStyle, 18); // Adjust the size as needed
         StyleConstants.setBold(largeStyle, true);
@@ -323,18 +291,15 @@ public class AdminDashboard extends JFrame {
             // Insert selected checkboxes and their prices
             styledDocument.insertString(styledDocument.getLength(), "\n", spacing);
             styledDocument.insertString(styledDocument.getLength(), "Refill Stock :\n", headingStyle);
-            styledDocument.insertString(styledDocument.getLength(), "\n", boldStyle);
+            styledDocument.insertString(styledDocument.getLength(), "\n", defaultStyle);
 
-            for (Component component : tuningMenuRectangle.getComponents()) {
-                if (component instanceof JCheckBox checkBox && checkBox.isSelected()) {
-                    String checkBoxText = checkBox.getText();
-                    if (checkBoxAmounts.containsKey(checkBoxText)) {
-                        double checkBoxPrice = checkBoxAmounts.get(checkBoxText);
-                        styledDocument.insertString(styledDocument.getLength(), " " + checkBoxText + " - $ " + checkBoxPrice + "\n", defaultStyle);
-                        total += checkBoxPrice;
-                    }
-                }
+            for (String selectedItem : selectedItems) {
+                double checkBoxPrice = checkBoxAmounts.get(selectedItem);
+                styledDocument.insertString(styledDocument.getLength(), " " + selectedItem + " - $ " + checkBoxPrice + "\n", defaultStyle);
             }
+
+            // Insert transaction details into RestockItemDetails table
+            addRestockDetailsToDatabase(selectedItems, 100, formattedDateTime);
 
             styledDocument.insertString(styledDocument.getLength(), "------------------------------------------------------------\n", defaultStyle);
 
@@ -501,8 +466,40 @@ public class AdminDashboard extends JFrame {
             ex.printStackTrace();
         }
     }
+    private void addRestockDetailsToDatabase(ArrayList<String> selectedItems, double total, String formattedDateTime) {
+        try (Connection connection = DriverManager.getConnection("jdbc:ucanaccess://E://Garage Genius Database//Garage_Genius.accdb");
+             Statement statement = connection.createStatement()) {
+
+            DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+            String currentMonthYear = LocalDateTime.now().format(monthYearFormatter);
+
+            for (String selectedItem : selectedItems) {
+                // Insert the values into the RestockItemDetails table
+                String insertQuery = "INSERT INTO RestockItemDetails ([Restock Items], [Total Price], [Transaction Date], [Transaction Month]) " +
+                        "VALUES (?, ?, ?, ?)";
+                try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
+                    insertStatement.setString(1, selectedItem);
+                    insertStatement.setDouble(2, total);
+                    insertStatement.setString(3, formattedDateTime);
+                    insertStatement.setString(4, currentMonthYear);
+
+                    int rowsAffected = insertStatement.executeUpdate();
+                    if (rowsAffected > 0) {
+//                        JOptionPane.showMessageDialog(null, "New entry added to RestockItemDetails table.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Failed to add new entry to RestockItemDetails table.");
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AdminDashboard());
+        SwingUtilities.invokeLater(AdminDashboard::new);
     }
 }

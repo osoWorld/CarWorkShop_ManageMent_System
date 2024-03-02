@@ -111,9 +111,6 @@ public class Login extends JFrame {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Add your login logic here
-                // For simplicity, display a message
-//                handleLoginButtonClick(roleComboBox.getSelectedItem().toString());
                 handleLoginButtonClick(emailField, passwordField, roleComboBox.getSelectedItem().toString());
             }
         });
@@ -129,7 +126,6 @@ public class Login extends JFrame {
 
     private void handleLoginButtonClick(JTextField email, JTextField password, String selectedRole) {
 
-        // Open the appropriate Dashboard based on the selected role
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -167,7 +163,7 @@ public class Login extends JFrame {
                     loginSuccessful = true;  // Set the flag to true
                     dispose();
                     new MainDashboard();
-                    break;  // Break out of the loop once login is successful
+                    break;
                 }
             }
 

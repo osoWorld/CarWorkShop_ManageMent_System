@@ -50,7 +50,7 @@ public class SearchReceipt extends JFrame {
             if (!customerId.isEmpty()) {
                 getCustomerInfo(customerId);
             } else {
-                JOptionPane.showMessageDialog(null, "Please enter a valid customer ID");
+                JOptionPane.showMessageDialog(null, "Please enter a valid customer ID","Error",JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -60,7 +60,7 @@ public class SearchReceipt extends JFrame {
             if (!employeeId.isEmpty()) {
                 getEmployeeInfo(employeeId);
             } else {
-                JOptionPane.showMessageDialog(null, "Please enter a valid employee ID");
+                JOptionPane.showMessageDialog(null, "Please enter a valid employee ID","Error",JOptionPane.ERROR_MESSAGE);
             }
         });
 
