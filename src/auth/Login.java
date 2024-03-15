@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
+import java.util.Objects;
 
 public class Login extends JFrame {
     private JTextField emailField;
@@ -27,9 +28,8 @@ public class Login extends JFrame {
         setUndecorated(false); // Set it too false to show window decorations (close, minimize, etc.)
 
 
-        ImageIcon imageIcon = new ImageIcon(getClass().getResource("/resources/main_login.jpg"));   //To get Image from resources
-        // Set the background image of the frame
-        setContentPane(new JLabel(imageIcon)); // Replace with the actual image file
+        ImageIcon imageIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/main_login.jpg")));
+        setContentPane(new JLabel(imageIcon));
 
         // Create a transparent panel for login components
         JPanel loginPanel = new JPanel() {
